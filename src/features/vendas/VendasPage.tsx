@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useDb } from '../../db/DbProvider'
 import type { Order, OrderItem, PaymentMethod } from '../../db/schema'
 import { getDeviceId } from '../../shared/deviceId'
-import { centsToBRL, formatDateTime } from '../../shared/format'
+import { centsToBRL, formatDateTime, paymentMethodLabel } from '../../shared/format'
 
 type Period = 'hoje' | '7dias' | 'tudo'
-type OrderRow = Order & { method: PaymentMethod | null }
+type OrderRow = Order & { method: PaymentMethod | null; installments: number | null }
 
 function periodStartIso(period: Period): string | null {
   const now = new Date()
@@ -13,8 +14,6 @@ function periodStartIso(period: Period): string | null {
   if (period === '7dias') return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
   return null
 }
-
-const methodLabel: Record<PaymentMethod, string> = { dinheiro: 'Dinheiro', cartao: 'Cartão', pix: 'Pix' }
 
 export function VendasPage() {
   const db = useDb()
@@ -26,7 +25,8 @@ export function VendasPage() {
 
   async function load() {
     const start = periodStartIso(period)
-    const sql = `SELECT o.*, p.method as method FROM orders o LEFT JOIN payments p ON p.order_id = o.id
+    const sql = `SELECT o.*, p.method as method, p.installments as installments FROM orders o
+                 LEFT JOIN payments p ON p.order_id = o.id
                  WHERE o.deleted = 0 ${start ? 'AND o.created_at >= ?' : ''} ORDER BY o.created_at DESC`
     setOrders(await db.query<OrderRow>(sql, start ? [start] : []))
   }
@@ -95,18 +95,22 @@ export function VendasPage() {
       <div className="divide-y divide-neutral-100 rounded border border-neutral-200 bg-white">
         {orders.map((order) => {
           const cancelada = order.status === 'cancelada'
+          const isTroca = !!order.exchange_of_order_id
           return (
             <div key={order.id}>
               <div className={`flex items-center justify-between px-4 py-3 ${cancelada ? 'opacity-50' : ''}`}>
                 <button onClick={() => toggleExpand(order)} className="flex flex-1 items-center justify-between text-left hover:underline">
-                  <span className="text-sm text-neutral-700">{formatDateTime(order.created_at)}</span>
+                  <span className="text-sm text-neutral-700">
+                    {formatDateTime(order.created_at)}
+                    {isTroca && <span className="ml-1 text-xs text-amber-600">(troca)</span>}
+                  </span>
                   <span className="text-sm text-neutral-500">{order.staff_name ?? '—'}</span>
-                  <span className="text-sm text-neutral-500">{order.method ? methodLabel[order.method] : '—'}</span>
+                  <span className="text-sm text-neutral-500">{order.method ? paymentMethodLabel(order.method, order.installments) : '—'}</span>
                   <span className={`mx-3 font-medium ${cancelada ? 'line-through' : ''}`}>{centsToBRL(order.total_cents)}</span>
                 </button>
 
-                {cancelada ? (
-                  <span className="text-xs font-medium text-red-600">Cancelada</span>
+                {cancelada || isTroca ? (
+                  cancelada && <span className="text-xs font-medium text-red-600">Cancelada</span>
                 ) : confirmingCancelId === order.id ? (
                   <span className="flex items-center gap-2 text-xs">
                     <span className="text-neutral-600">Cancelar venda?</span>
@@ -118,12 +122,17 @@ export function VendasPage() {
                     </button>
                   </span>
                 ) : (
-                  <button
-                    onClick={() => setConfirmingCancelId(order.id)}
-                    className="text-xs text-neutral-400 hover:text-red-600 hover:underline"
-                  >
-                    Cancelar
-                  </button>
+                  <span className="flex items-center gap-3 text-xs">
+                    <Link to={`/troca/${order.id}`} className="text-neutral-400 hover:text-neutral-700 hover:underline">
+                      Troca
+                    </Link>
+                    <button
+                      onClick={() => setConfirmingCancelId(order.id)}
+                      className="text-neutral-400 hover:text-red-600 hover:underline"
+                    >
+                      Cancelar
+                    </button>
+                  </span>
                 )}
               </div>
               {expandedId === order.id && (

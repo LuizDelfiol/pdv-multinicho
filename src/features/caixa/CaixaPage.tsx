@@ -6,6 +6,7 @@ import type { PaymentMethod, Product } from '../../db/schema'
 import { useBusinessConfig } from '../../shared/BusinessConfigProvider'
 import { getDeviceId } from '../../shared/deviceId'
 import { centsToBRL } from '../../shared/format'
+import { PaymentButtons } from '../../shared/PaymentButtons'
 import { ProductSearchInput } from '../../shared/ProductSearchInput'
 import { Receipt, type ReceiptData } from './Receipt'
 
@@ -50,7 +51,7 @@ export function CaixaPage() {
 
   const totalCents = cart.reduce((sum, l) => sum + l.quantity * l.unitPriceCents, 0)
 
-  async function finalize(method: PaymentMethod) {
+  async function finalize(method: PaymentMethod, installments: number | null) {
     if (cart.length === 0) return
     const now = new Date().toISOString()
     const deviceId = getDeviceId()
@@ -75,9 +76,9 @@ export function CaixaPage() {
         ])
       }
       await db.exec(
-        `INSERT INTO payments (id, order_id, method, amount_cents, created_at, updated_at, device_id, deleted)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
-        [uuidv4(), orderId, method, totalCents, now, now, deviceId],
+        `INSERT INTO payments (id, order_id, method, amount_cents, installments, created_at, updated_at, device_id, deleted)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+        [uuidv4(), orderId, method, totalCents, installments, now, now, deviceId],
       )
     })
 
@@ -87,6 +88,7 @@ export function CaixaPage() {
       items: cart.map((l) => ({ name: l.name, quantity: l.quantity, unitPriceCents: l.unitPriceCents })),
       totalCents,
       method,
+      installments,
     })
     setCart([])
   }
@@ -146,29 +148,7 @@ export function CaixaPage() {
 
       <div className="no-print flex items-center justify-between rounded border border-neutral-200 bg-white p-4">
         <span className="text-xl font-semibold">Total: {centsToBRL(totalCents)}</span>
-        <div className="flex gap-2">
-          <button
-            disabled={cart.length === 0}
-            onClick={() => finalize('dinheiro')}
-            className="rounded bg-green-600 px-4 py-2 font-medium text-white hover:bg-green-700 disabled:opacity-40"
-          >
-            Dinheiro
-          </button>
-          <button
-            disabled={cart.length === 0}
-            onClick={() => finalize('cartao')}
-            className="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-40"
-          >
-            Cartão
-          </button>
-          <button
-            disabled={cart.length === 0}
-            onClick={() => finalize('pix')}
-            className="rounded bg-purple-600 px-4 py-2 font-medium text-white hover:bg-purple-700 disabled:opacity-40"
-          >
-            Pix
-          </button>
-        </div>
+        <PaymentButtons disabled={cart.length === 0} onPay={finalize} />
       </div>
 
       {lastReceipt && <Receipt data={lastReceipt} />}

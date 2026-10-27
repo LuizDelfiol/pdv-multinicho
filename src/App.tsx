@@ -7,6 +7,7 @@ import { ConfigPage } from './features/config/ConfigPage'
 import { FechamentoPage } from './features/fechamento/FechamentoPage'
 import { ComandaPage } from './features/mesas/ComandaPage'
 import { MesasPage } from './features/mesas/MesasPage'
+import { TrocaPage } from './features/vendas/TrocaPage'
 import { VendasPage } from './features/vendas/VendasPage'
 import { useBusinessConfig } from './shared/BusinessConfigProvider'
 import { AppShell } from './shared/layout/AppShell'
@@ -34,6 +35,14 @@ function App() {
             element={
               <RequireRole min="gerente">
                 <VendasPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/troca/:orderId"
+            element={
+              <RequireRole min="gerente">
+                <TrocaPage />
               </RequireRole>
             }
           />

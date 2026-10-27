@@ -1,4 +1,4 @@
-import { centsToBRL, formatDateTime } from '../../shared/format'
+import { centsToBRL, formatDateTime, paymentMethodLabel } from '../../shared/format'
 import type { PaymentMethod } from '../../db/schema'
 
 export interface ReceiptData {
@@ -7,12 +7,7 @@ export interface ReceiptData {
   items: { name: string; quantity: number; unitPriceCents: number }[]
   totalCents: number
   method: PaymentMethod
-}
-
-const methodLabel: Record<PaymentMethod, string> = {
-  dinheiro: 'Dinheiro',
-  cartao: 'Cartão',
-  pix: 'Pix',
+  installments?: number | null
 }
 
 export function Receipt({ data }: { data: ReceiptData }) {
@@ -34,7 +29,7 @@ export function Receipt({ data }: { data: ReceiptData }) {
         <span>Total</span>
         <span>{centsToBRL(data.totalCents)}</span>
       </div>
-      <p>Pagamento: {methodLabel[data.method]}</p>
+      <p>Pagamento: {paymentMethodLabel(data.method, data.installments)}</p>
       <p className="mt-2 text-center">Obrigado pela compra!</p>
     </div>
   )

@@ -14,3 +14,8 @@ export function brlToCents(value: string): number {
 export function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString('pt-BR')
 }
+
+export function paymentMethodLabel(method: 'dinheiro' | 'cartao' | 'pix', installments?: number | null): string {
+  const label = { dinheiro: 'Dinheiro', cartao: 'Cartão', pix: 'Pix' }[method]
+  return method === 'cartao' && installments && installments > 1 ? `${label} ${installments}x` : label
+}

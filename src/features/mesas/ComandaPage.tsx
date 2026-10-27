@@ -7,6 +7,7 @@ import type { Order, OrderItem, PaymentMethod, Product } from '../../db/schema'
 import { useBusinessConfig } from '../../shared/BusinessConfigProvider'
 import { getDeviceId } from '../../shared/deviceId'
 import { centsToBRL } from '../../shared/format'
+import { PaymentButtons } from '../../shared/PaymentButtons'
 import { ProductSearchInput } from '../../shared/ProductSearchInput'
 import { Receipt, type ReceiptData } from '../caixa/Receipt'
 
@@ -75,7 +76,7 @@ export function ComandaPage() {
     await load()
   }
 
-  async function closeTable(method: PaymentMethod) {
+  async function closeTable(method: PaymentMethod, installments: number | null) {
     if (!order || items.length === 0) return
     const now = new Date().toISOString()
     const deviceId = getDeviceId()
@@ -99,9 +100,9 @@ export function ComandaPage() {
         order.id,
       ])
       await db.exec(
-        `INSERT INTO payments (id, order_id, method, amount_cents, created_at, updated_at, device_id, deleted)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
-        [uuidv4(), order.id, method, totalCents, now, now, deviceId],
+        `INSERT INTO payments (id, order_id, method, amount_cents, installments, created_at, updated_at, device_id, deleted)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+        [uuidv4(), order.id, method, totalCents, installments, now, now, deviceId],
       )
     })
 
@@ -111,6 +112,7 @@ export function ComandaPage() {
       items: items.map((i) => ({ name: i.product_name, quantity: i.quantity, unitPriceCents: i.unit_price_cents })),
       totalCents,
       method,
+      installments,
     })
     navigate('/')
   }
@@ -168,29 +170,7 @@ export function ComandaPage() {
 
       <div className="no-print flex items-center justify-between rounded border border-neutral-200 bg-white p-4">
         <span className="text-xl font-semibold">Total: {centsToBRL(totalCents)}</span>
-        <div className="flex gap-2">
-          <button
-            disabled={items.length === 0}
-            onClick={() => closeTable('dinheiro')}
-            className="rounded bg-green-600 px-4 py-2 font-medium text-white hover:bg-green-700 disabled:opacity-40"
-          >
-            Dinheiro
-          </button>
-          <button
-            disabled={items.length === 0}
-            onClick={() => closeTable('cartao')}
-            className="rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-40"
-          >
-            Cartão
-          </button>
-          <button
-            disabled={items.length === 0}
-            onClick={() => closeTable('pix')}
-            className="rounded bg-purple-600 px-4 py-2 font-medium text-white hover:bg-purple-700 disabled:opacity-40"
-          >
-            Pix
-          </button>
-        </div>
+        <PaymentButtons disabled={items.length === 0} onPay={closeTable} />
       </div>
 
       {lastReceipt && <Receipt data={lastReceipt} />}

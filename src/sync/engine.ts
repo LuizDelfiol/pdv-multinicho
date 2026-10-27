@@ -7,16 +7,33 @@ interface TableSpec {
 }
 
 const TABLES: TableSpec[] = [
-  { name: 'products', columns: ['id', 'code', 'name', 'price_cents', 'stock', 'unit', 'updated_at', 'device_id', 'deleted'] },
+  {
+    name: 'products',
+    columns: ['id', 'code', 'name', 'price_cents', 'stock', 'unit', 'variant_group', 'updated_at', 'device_id', 'deleted'],
+  },
   {
     name: 'orders',
-    columns: ['id', 'status', 'table_number', 'total_cents', 'staff_name', 'created_at', 'updated_at', 'device_id', 'deleted'],
+    columns: [
+      'id',
+      'status',
+      'table_number',
+      'total_cents',
+      'staff_name',
+      'exchange_of_order_id',
+      'created_at',
+      'updated_at',
+      'device_id',
+      'deleted',
+    ],
   },
   {
     name: 'order_items',
     columns: ['id', 'order_id', 'product_id', 'product_name', 'quantity', 'unit_price_cents', 'updated_at', 'device_id', 'deleted'],
   },
-  { name: 'payments', columns: ['id', 'order_id', 'method', 'amount_cents', 'created_at', 'updated_at', 'device_id', 'deleted'] },
+  {
+    name: 'payments',
+    columns: ['id', 'order_id', 'method', 'amount_cents', 'installments', 'created_at', 'updated_at', 'device_id', 'deleted'],
+  },
   {
     name: 'cash_sessions',
     columns: [

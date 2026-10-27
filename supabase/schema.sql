@@ -13,6 +13,7 @@ create table if not exists products (
   device_id text not null,
   deleted boolean not null default false
 );
+alter table products add column if not exists variant_group text;
 
 create table if not exists orders (
   id uuid primary key,
@@ -27,6 +28,7 @@ create table if not exists orders (
 -- idempotente: roda sem erro mesmo se a tabela já existia antes desta coluna
 alter table orders add column if not exists table_number text;
 alter table orders add column if not exists staff_name text;
+alter table orders add column if not exists exchange_of_order_id uuid;
 
 create table if not exists order_items (
   id uuid primary key,
@@ -52,6 +54,7 @@ create table if not exists payments (
   device_id text not null,
   deleted boolean not null default false
 );
+alter table payments add column if not exists installments integer;
 
 create table if not exists cash_sessions (
   id uuid primary key,

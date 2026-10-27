@@ -5,6 +5,9 @@ export interface Product {
   price_cents: number
   stock: number
   unit: string
+  // agrupa variantes no Catálogo (ex: "Camiseta Azul" pras linhas P/M/G) — texto
+  // livre, puramente visual, cada variante continua sendo seu próprio produto
+  variant_group: string | null
   updated_at: string
   device_id: string
   deleted: number
@@ -18,6 +21,8 @@ export interface Order {
   table_number: string | null
   total_cents: number
   staff_name: string | null
+  // preenchido só em orders de troca — aponta pra venda original que foi trocada
+  exchange_of_order_id: string | null
   created_at: string
   updated_at: string
   device_id: string
@@ -43,6 +48,8 @@ export interface Payment {
   order_id: string
   method: PaymentMethod
   amount_cents: number
+  // só relevante quando method='cartao'; null = à vista/não aplicável
+  installments: number | null
   created_at: string
   updated_at: string
   device_id: string
@@ -111,6 +118,7 @@ CREATE TABLE IF NOT EXISTS products (
   price_cents INTEGER NOT NULL,
   stock REAL NOT NULL DEFAULT 0,
   unit TEXT NOT NULL DEFAULT 'un',
+  variant_group TEXT,
   updated_at TEXT NOT NULL,
   device_id TEXT NOT NULL,
   deleted INTEGER NOT NULL DEFAULT 0
@@ -124,6 +132,7 @@ CREATE TABLE IF NOT EXISTS orders (
   table_number TEXT,
   total_cents INTEGER NOT NULL DEFAULT 0,
   staff_name TEXT,
+  exchange_of_order_id TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   device_id TEXT NOT NULL,
@@ -149,6 +158,7 @@ CREATE TABLE IF NOT EXISTS payments (
   order_id TEXT NOT NULL,
   method TEXT NOT NULL,
   amount_cents INTEGER NOT NULL,
+  installments INTEGER,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   device_id TEXT NOT NULL,
@@ -216,6 +226,9 @@ export const MIGRATIONS: Migration[] = [
   { version: 2, sql: 'ALTER TABLE orders ADD COLUMN staff_name TEXT' },
   { version: 3, sql: 'ALTER TABLE cash_sessions ADD COLUMN staff_name TEXT' },
   { version: 4, sql: 'ALTER TABLE cash_movements ADD COLUMN staff_name TEXT' },
+  { version: 5, sql: 'ALTER TABLE products ADD COLUMN variant_group TEXT' },
+  { version: 6, sql: 'ALTER TABLE payments ADD COLUMN installments INTEGER' },
+  { version: 7, sql: 'ALTER TABLE orders ADD COLUMN exchange_of_order_id TEXT' },
 ]
 
 export const CURRENT_SCHEMA_VERSION = MIGRATIONS.reduce((max, m) => Math.max(max, m.version), 0)

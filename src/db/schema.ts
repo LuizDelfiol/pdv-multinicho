@@ -15,6 +15,7 @@ export type OrderStatus = 'aberta' | 'finalizada' | 'cancelada'
 export interface Order {
   id: string
   status: OrderStatus
+  table_number: string | null
   total_cents: number
   created_at: string
   updated_at: string
@@ -74,6 +75,7 @@ CREATE INDEX IF NOT EXISTS idx_products_code ON products(code);
 CREATE TABLE IF NOT EXISTS orders (
   id TEXT PRIMARY KEY,
   status TEXT NOT NULL,
+  table_number TEXT,
   total_cents INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
@@ -115,3 +117,16 @@ CREATE TABLE IF NOT EXISTS business_config (
   deleted INTEGER NOT NULL DEFAULT 0
 );
 `
+
+// Evolui bancos já existentes (CREATE TABLE acima já nasce com o schema atual,
+// então um banco novo pula direto pra CURRENT_SCHEMA_VERSION sem rodar nada daqui).
+export interface Migration {
+  version: number
+  sql: string
+}
+
+export const MIGRATIONS: Migration[] = [
+  { version: 1, sql: 'ALTER TABLE orders ADD COLUMN table_number TEXT' },
+]
+
+export const CURRENT_SCHEMA_VERSION = MIGRATIONS.reduce((max, m) => Math.max(max, m.version), 0)

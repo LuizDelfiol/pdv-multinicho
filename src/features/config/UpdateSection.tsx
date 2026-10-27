@@ -1,32 +1,46 @@
 import { isTauri } from '@tauri-apps/api/core'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 type Status = 'idle' | 'checking' | 'none' | 'downloading' | 'ready' | 'error'
 
 export function UpdateSection() {
   const [status, setStatus] = useState<Status>('idle')
   const [error, setError] = useState<string | null>(null)
+  const ranAutoCheck = useRef(false)
+
+  useEffect(() => {
+    if (!isTauri() || ranAutoCheck.current) return
+    ranAutoCheck.current = true
+    runCheck({ silent: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (!isTauri()) return null
 
-  async function handleCheck() {
-    setStatus('checking')
-    setError(null)
+  async function runCheck({ silent }: { silent: boolean }) {
+    if (!silent) {
+      setStatus('checking')
+      setError(null)
+    }
     try {
       const { check } = await import('@tauri-apps/plugin-updater')
       const update = await check()
       if (!update) {
-        setStatus('none')
+        if (!silent) setStatus('none')
         return
       }
       setStatus('downloading')
       await update.downloadAndInstall()
       setStatus('ready')
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
-      setStatus('error')
+      if (!silent) {
+        setError(err instanceof Error ? err.message : String(err))
+        setStatus('error')
+      }
     }
   }
+
+  const handleCheck = () => runCheck({ silent: false })
 
   async function handleRestart() {
     const { relaunch } = await import('@tauri-apps/plugin-process')

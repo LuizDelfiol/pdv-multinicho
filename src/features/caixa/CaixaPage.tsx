@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { useDb } from '../../db/DbProvider'
-import type { BusinessConfig, PaymentMethod, Product } from '../../db/schema'
+import type { PaymentMethod, Product } from '../../db/schema'
+import { useBusinessConfig } from '../../shared/BusinessConfigProvider'
 import { getDeviceId } from '../../shared/deviceId'
 import { centsToBRL } from '../../shared/format'
-import { normalize } from '../../shared/text'
+import { ProductSearchInput } from '../../shared/ProductSearchInput'
 import { Receipt, type ReceiptData } from './Receipt'
 
 interface CartLine {
@@ -17,18 +18,9 @@ interface CartLine {
 
 export function CaixaPage() {
   const db = useDb()
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [searchInput, setSearchInput] = useState('')
-  const [matches, setMatches] = useState<Product[]>([])
+  const { name: businessName } = useBusinessConfig()
   const [cart, setCart] = useState<CartLine[]>([])
-  const [businessName, setBusinessName] = useState('PDV')
   const [lastReceipt, setLastReceipt] = useState<ReceiptData | null>(null)
-
-  useEffect(() => {
-    db.query<BusinessConfig>('SELECT * FROM business_config WHERE id = ?', ['default']).then((rows) => {
-      if (rows[0]) setBusinessName(rows[0].name)
-    })
-  }, [db])
 
   useEffect(() => {
     if (!lastReceipt) return
@@ -46,30 +38,6 @@ export function CaixaPage() {
       }
       return [...prev, { productId: p.id, name: p.name, unitPriceCents: p.price_cents, quantity: 1, availableStock: p.stock }]
     })
-    setSearchInput('')
-    setMatches([])
-    inputRef.current?.focus()
-  }
-
-  async function handleSearchSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const term = searchInput.trim()
-    if (!term) return
-
-    const byCode = await db.query<Product>('SELECT * FROM products WHERE deleted = 0 AND code = ? LIMIT 1', [term])
-    if (byCode[0]) {
-      addToCart(byCode[0])
-      return
-    }
-
-    const all = await db.query<Product>('SELECT * FROM products WHERE deleted = 0')
-    const needle = normalize(term)
-    const byName = all.filter((p) => normalize(p.name).includes(needle)).slice(0, 8)
-    if (byName.length === 1) {
-      addToCart(byName[0])
-    } else {
-      setMatches(byName)
-    }
   }
 
   function updateQuantity(productId: string, quantity: number) {
@@ -123,32 +91,9 @@ export function CaixaPage() {
 
   return (
     <div className="mx-auto max-w-2xl p-6">
-      <form onSubmit={handleSearchSubmit} className="no-print mb-4">
-        <input
-          ref={inputRef}
-          autoFocus
-          className="w-full rounded border border-neutral-300 px-3 py-2 text-lg"
-          placeholder="Bipar código de barras ou digitar nome do produto"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-        />
-        {matches.length > 0 && (
-          <ul className="mt-1 rounded border border-neutral-200 bg-white shadow-sm">
-            {matches.map((p) => (
-              <li key={p.id}>
-                <button
-                  type="button"
-                  onClick={() => addToCart(p)}
-                  className="flex w-full justify-between px-3 py-2 text-left hover:bg-neutral-100"
-                >
-                  <span>{p.name}</span>
-                  <span>{centsToBRL(p.price_cents)}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </form>
+      <div className="mb-4">
+        <ProductSearchInput onSelect={addToCart} />
+      </div>
 
       <table className="no-print mb-4 w-full border-collapse overflow-hidden rounded border border-neutral-200 bg-white text-sm">
         <thead className="bg-neutral-100 text-left text-neutral-600">

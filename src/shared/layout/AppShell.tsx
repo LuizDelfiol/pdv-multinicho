@@ -1,17 +1,13 @@
 import { NavLink, Outlet } from 'react-router-dom'
-
-const links = [
-  { to: '/', label: 'Caixa' },
-  { to: '/catalogo', label: 'Catálogo' },
-  { to: '/vendas', label: 'Vendas' },
-  { to: '/config', label: 'Config' },
-]
+import { useBusinessConfig } from '../BusinessConfigProvider'
 
 export function AppShell() {
+  const { template } = useBusinessConfig()
+
   return (
     <div className="flex h-screen flex-col">
       <nav className="no-print flex gap-1 border-b border-neutral-200 bg-white px-4 py-2">
-        {links.map((link) => (
+        {template.nav.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}

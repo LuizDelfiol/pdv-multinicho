@@ -1,17 +1,14 @@
-export interface BusinessTemplate {
-  id: string
-  label: string
-  productLabel: string
-}
+import type { BusinessTemplate } from './types'
 
 export const mercadoTemplate: BusinessTemplate = {
   id: 'mercado',
   label: 'Mercado / Marcadinho',
   productLabel: 'Produto',
-}
-
-// Único template implementado por ora. Outros nichos (restaurante, barbearia,
-// sorveteria) entram aqui depois como novas entradas desse mapa.
-export const templates: Record<string, BusinessTemplate> = {
-  mercado: mercadoTemplate,
+  flow: 'venda-direta',
+  nav: [
+    { to: '/', label: 'Caixa' },
+    { to: '/catalogo', label: 'Catálogo' },
+    { to: '/vendas', label: 'Vendas' },
+    { to: '/config', label: 'Config' },
+  ],
 }

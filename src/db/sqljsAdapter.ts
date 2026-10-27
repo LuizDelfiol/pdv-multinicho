@@ -1,7 +1,7 @@
 import initSqlJs, { type Database } from 'sql.js'
 import type { IDbClient, SqlParam } from './client'
 import { loadDbBytes, saveDbBytes } from './idbStore'
-import { SCHEMA_SQL } from './schema'
+import { CURRENT_SCHEMA_VERSION, MIGRATIONS, SCHEMA_SQL } from './schema'
 
 export class SqlJsAdapter implements IDbClient {
   private db: Database | null = null
@@ -13,8 +13,16 @@ export class SqlJsAdapter implements IDbClient {
     this.db = existing ? new SQL.Database(existing) : new SQL.Database()
     if (!existing) {
       this.db.run(SCHEMA_SQL)
-      await this.persist()
+      this.db.run(`PRAGMA user_version = ${CURRENT_SCHEMA_VERSION}`)
+    } else {
+      this.db.run(SCHEMA_SQL)
+      const version = this.db.exec('PRAGMA user_version')[0]?.values[0][0] as number
+      for (const migration of MIGRATIONS.filter((m) => m.version > version)) {
+        this.db.run(migration.sql)
+        this.db.run(`PRAGMA user_version = ${migration.version}`)
+      }
     }
+    await this.persist()
   }
 
   private requireDb(): Database {

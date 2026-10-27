@@ -1,26 +1,23 @@
 import { useEffect, useState } from 'react'
 import { useDb } from '../../db/DbProvider'
-import type { BusinessConfig } from '../../db/schema'
+import { useBusinessConfig } from '../../shared/BusinessConfigProvider'
 import { getDeviceId } from '../../shared/deviceId'
 import { formatDateTime } from '../../shared/format'
 import { useSync } from '../../sync/SyncProvider'
-import { templates } from '../../templates/mercado'
+import { templates } from '../../templates'
 import { UpdateSection } from './UpdateSection'
 
 export function ConfigPage() {
   const db = useDb()
-  const [name, setName] = useState('')
-  const [businessType, setBusinessType] = useState('mercado')
+  const { name: savedName, template, reload } = useBusinessConfig()
+  const [name, setName] = useState(savedName)
+  const [businessType, setBusinessType] = useState(template.id)
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
-    db.query<BusinessConfig>('SELECT * FROM business_config WHERE id = ?', ['default']).then((rows) => {
-      if (rows[0]) {
-        setName(rows[0].name)
-        setBusinessType(rows[0].business_type)
-      }
-    })
-  }, [db])
+    setName(savedName)
+    setBusinessType(template.id)
+  }, [savedName, template])
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
@@ -34,6 +31,7 @@ export function ConfigPage() {
          device_id = excluded.device_id`,
       ['default', name, businessType, new Date().toISOString(), getDeviceId()],
     )
+    await reload()
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
@@ -55,10 +53,9 @@ export function ConfigPage() {
         <label className="flex flex-col gap-1">
           <span className="text-sm font-medium text-neutral-700">Tipo de negócio</span>
           <select
-            className="rounded border border-neutral-300 px-3 py-2 disabled:bg-neutral-100"
+            className="rounded border border-neutral-300 px-3 py-2"
             value={businessType}
             onChange={(e) => setBusinessType(e.target.value)}
-            disabled={Object.keys(templates).length <= 1}
           >
             {Object.values(templates).map((t) => (
               <option key={t.id} value={t.id}>

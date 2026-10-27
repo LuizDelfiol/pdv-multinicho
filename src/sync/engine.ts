@@ -8,12 +8,31 @@ interface TableSpec {
 
 const TABLES: TableSpec[] = [
   { name: 'products', columns: ['id', 'code', 'name', 'price_cents', 'stock', 'unit', 'updated_at', 'device_id', 'deleted'] },
-  { name: 'orders', columns: ['id', 'status', 'total_cents', 'created_at', 'updated_at', 'device_id', 'deleted'] },
+  { name: 'orders', columns: ['id', 'status', 'table_number', 'total_cents', 'created_at', 'updated_at', 'device_id', 'deleted'] },
   {
     name: 'order_items',
     columns: ['id', 'order_id', 'product_id', 'product_name', 'quantity', 'unit_price_cents', 'updated_at', 'device_id', 'deleted'],
   },
   { name: 'payments', columns: ['id', 'order_id', 'method', 'amount_cents', 'created_at', 'updated_at', 'device_id', 'deleted'] },
+  {
+    name: 'cash_sessions',
+    columns: [
+      'id',
+      'status',
+      'opening_amount_cents',
+      'counted_amount_cents',
+      'expected_amount_cents',
+      'opened_at',
+      'closed_at',
+      'updated_at',
+      'device_id',
+      'deleted',
+    ],
+  },
+  {
+    name: 'cash_movements',
+    columns: ['id', 'session_id', 'type', 'amount_cents', 'reason', 'created_at', 'updated_at', 'device_id', 'deleted'],
+  },
 ]
 
 const LAST_SYNCED_KEY = 'pdv_last_synced_at'

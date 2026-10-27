@@ -1,0 +1,117 @@
+export interface Product {
+  id: string
+  code: string | null
+  name: string
+  price_cents: number
+  stock: number
+  unit: string
+  updated_at: string
+  device_id: string
+  deleted: number
+}
+
+export type OrderStatus = 'aberta' | 'finalizada' | 'cancelada'
+
+export interface Order {
+  id: string
+  status: OrderStatus
+  total_cents: number
+  created_at: string
+  updated_at: string
+  device_id: string
+  deleted: number
+}
+
+export interface OrderItem {
+  id: string
+  order_id: string
+  product_id: string
+  product_name: string
+  quantity: number
+  unit_price_cents: number
+  updated_at: string
+  device_id: string
+  deleted: number
+}
+
+export type PaymentMethod = 'dinheiro' | 'cartao' | 'pix'
+
+export interface Payment {
+  id: string
+  order_id: string
+  method: PaymentMethod
+  amount_cents: number
+  created_at: string
+  updated_at: string
+  device_id: string
+  deleted: number
+}
+
+export interface BusinessConfig {
+  id: string
+  name: string
+  business_type: string
+  updated_at: string
+  device_id: string
+  deleted: number
+}
+
+export const SCHEMA_SQL = `
+CREATE TABLE IF NOT EXISTS products (
+  id TEXT PRIMARY KEY,
+  code TEXT,
+  name TEXT NOT NULL,
+  price_cents INTEGER NOT NULL,
+  stock REAL NOT NULL DEFAULT 0,
+  unit TEXT NOT NULL DEFAULT 'un',
+  updated_at TEXT NOT NULL,
+  device_id TEXT NOT NULL,
+  deleted INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_products_code ON products(code);
+
+CREATE TABLE IF NOT EXISTS orders (
+  id TEXT PRIMARY KEY,
+  status TEXT NOT NULL,
+  total_cents INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  device_id TEXT NOT NULL,
+  deleted INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+  id TEXT PRIMARY KEY,
+  order_id TEXT NOT NULL,
+  product_id TEXT NOT NULL,
+  product_name TEXT NOT NULL,
+  quantity REAL NOT NULL,
+  unit_price_cents INTEGER NOT NULL,
+  updated_at TEXT NOT NULL,
+  device_id TEXT NOT NULL,
+  deleted INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
+
+CREATE TABLE IF NOT EXISTS payments (
+  id TEXT PRIMARY KEY,
+  order_id TEXT NOT NULL,
+  method TEXT NOT NULL,
+  amount_cents INTEGER NOT NULL,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  device_id TEXT NOT NULL,
+  deleted INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS business_config (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  business_type TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  device_id TEXT NOT NULL,
+  deleted INTEGER NOT NULL DEFAULT 0
+);
+`

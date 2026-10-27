@@ -57,6 +57,35 @@ export interface BusinessConfig {
   deleted: number
 }
 
+export type CashSessionStatus = 'aberto' | 'fechado'
+
+export interface CashSession {
+  id: string
+  status: CashSessionStatus
+  opening_amount_cents: number
+  counted_amount_cents: number | null
+  expected_amount_cents: number | null
+  opened_at: string
+  closed_at: string | null
+  updated_at: string
+  device_id: string
+  deleted: number
+}
+
+export type CashMovementType = 'sangria' | 'suprimento'
+
+export interface CashMovement {
+  id: string
+  session_id: string
+  type: CashMovementType
+  amount_cents: number
+  reason: string | null
+  created_at: string
+  updated_at: string
+  device_id: string
+  deleted: number
+}
+
 export const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS products (
   id TEXT PRIMARY KEY,
@@ -116,6 +145,33 @@ CREATE TABLE IF NOT EXISTS business_config (
   device_id TEXT NOT NULL,
   deleted INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS cash_sessions (
+  id TEXT PRIMARY KEY,
+  status TEXT NOT NULL,
+  opening_amount_cents INTEGER NOT NULL,
+  counted_amount_cents INTEGER,
+  expected_amount_cents INTEGER,
+  opened_at TEXT NOT NULL,
+  closed_at TEXT,
+  updated_at TEXT NOT NULL,
+  device_id TEXT NOT NULL,
+  deleted INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS cash_movements (
+  id TEXT PRIMARY KEY,
+  session_id TEXT NOT NULL,
+  type TEXT NOT NULL,
+  amount_cents INTEGER NOT NULL,
+  reason TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  device_id TEXT NOT NULL,
+  deleted INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_cash_movements_session ON cash_movements(session_id);
 `
 
 // Evolui bancos já existentes (CREATE TABLE acima já nasce com o schema atual,

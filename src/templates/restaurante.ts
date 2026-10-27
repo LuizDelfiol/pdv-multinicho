@@ -9,6 +9,7 @@ export const restauranteTemplate: BusinessTemplate = {
     { to: '/', label: 'Mesas' },
     { to: '/catalogo', label: 'Cardápio' },
     { to: '/vendas', label: 'Vendas' },
+    { to: '/fechamento', label: 'Fechamento' },
     { to: '/config', label: 'Config' },
   ],
 }

@@ -9,6 +9,7 @@ export const mercadoTemplate: BusinessTemplate = {
     { to: '/', label: 'Caixa' },
     { to: '/catalogo', label: 'Catálogo' },
     { to: '/vendas', label: 'Vendas' },
+    { to: '/fechamento', label: 'Fechamento' },
     { to: '/config', label: 'Config' },
   ],
 }

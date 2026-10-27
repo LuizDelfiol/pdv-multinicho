@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom'
 import { CaixaPage } from './features/caixa/CaixaPage'
 import { CatalogoPage } from './features/catalogo/CatalogoPage'
 import { ConfigPage } from './features/config/ConfigPage'
+import { FechamentoPage } from './features/fechamento/FechamentoPage'
 import { ComandaPage } from './features/mesas/ComandaPage'
 import { MesasPage } from './features/mesas/MesasPage'
 import { VendasPage } from './features/vendas/VendasPage'
@@ -19,6 +20,7 @@ function App() {
         {isMesaComanda && <Route path="/comanda/:orderId" element={<ComandaPage />} />}
         <Route path="/catalogo" element={<CatalogoPage />} />
         <Route path="/vendas" element={<VendasPage />} />
+        <Route path="/fechamento" element={<FechamentoPage />} />
         <Route path="/config" element={<ConfigPage />} />
       </Route>
     </Routes>

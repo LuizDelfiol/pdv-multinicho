@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
+import { useStaff } from '../../auth/StaffProvider'
 import { useDb } from '../../db/DbProvider'
 import type { CashMovement, CashMovementType, CashSession } from '../../db/schema'
 import { getDeviceId } from '../../shared/deviceId'
@@ -19,6 +20,7 @@ function movementsBalance(movements: CashMovement[]): number {
 
 export function FechamentoPage() {
   const db = useDb()
+  const { current } = useStaff()
   const [session, setSession] = useState<CashSession | null>(null)
   const [lastClosed, setLastClosed] = useState<CashSession | null>(null)
   const [movements, setMovements] = useState<CashMovement[]>([])
@@ -53,9 +55,9 @@ export function FechamentoPage() {
     e.preventDefault()
     const now = new Date().toISOString()
     await db.exec(
-      `INSERT INTO cash_sessions (id, status, opening_amount_cents, opened_at, updated_at, device_id, deleted)
-       VALUES (?, 'aberto', ?, ?, ?, ?, 0)`,
-      [uuidv4(), brlToCents(openingAmount), now, now, getDeviceId()],
+      `INSERT INTO cash_sessions (id, status, opening_amount_cents, staff_name, opened_at, updated_at, device_id, deleted)
+       VALUES (?, 'aberto', ?, ?, ?, ?, ?, 0)`,
+      [uuidv4(), brlToCents(openingAmount), current?.name ?? null, now, now, getDeviceId()],
     )
     setOpeningAmount('')
     await load()
@@ -66,9 +68,19 @@ export function FechamentoPage() {
     if (!session) return
     const now = new Date().toISOString()
     await db.exec(
-      `INSERT INTO cash_movements (id, session_id, type, amount_cents, reason, created_at, updated_at, device_id, deleted)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-      [uuidv4(), session.id, movementType, brlToCents(movementAmount), movementReason || null, now, now, getDeviceId()],
+      `INSERT INTO cash_movements (id, session_id, type, amount_cents, reason, staff_name, created_at, updated_at, device_id, deleted)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+      [
+        uuidv4(),
+        session.id,
+        movementType,
+        brlToCents(movementAmount),
+        movementReason || null,
+        current?.name ?? null,
+        now,
+        now,
+        getDeviceId(),
+      ],
     )
     setMovementAmount('')
     setMovementReason('')
@@ -146,6 +158,7 @@ export function FechamentoPage() {
             <span>
               {m.type === 'sangria' ? 'Sangria' : 'Suprimento'}
               {m.reason ? ` — ${m.reason}` : ''}
+              {m.staff_name ? ` (${m.staff_name})` : ''}
             </span>
             <span>
               {m.type === 'sangria' ? '-' : '+'}

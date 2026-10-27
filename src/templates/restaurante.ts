@@ -6,10 +6,10 @@ export const restauranteTemplate: BusinessTemplate = {
   productLabel: 'Item do cardápio',
   flow: 'mesa-comanda',
   nav: [
-    { to: '/', label: 'Mesas' },
-    { to: '/catalogo', label: 'Cardápio' },
-    { to: '/vendas', label: 'Vendas' },
-    { to: '/fechamento', label: 'Fechamento' },
-    { to: '/config', label: 'Config' },
+    { to: '/', label: 'Mesas', minRole: 'operador' },
+    { to: '/catalogo', label: 'Cardápio', minRole: 'gerente' },
+    { to: '/vendas', label: 'Vendas', minRole: 'gerente' },
+    { to: '/fechamento', label: 'Fechamento', minRole: 'gerente' },
+    { to: '/config', label: 'Config', minRole: 'administrador' },
   ],
 }

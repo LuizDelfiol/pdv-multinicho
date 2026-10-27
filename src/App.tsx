@@ -1,4 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
+import { LoginGate } from './auth/LoginGate'
+import { RequireRole } from './auth/RequireRole'
 import { CaixaPage } from './features/caixa/CaixaPage'
 import { CatalogoPage } from './features/catalogo/CatalogoPage'
 import { ConfigPage } from './features/config/ConfigPage'
@@ -14,16 +16,46 @@ function App() {
   const isMesaComanda = template.flow === 'mesa-comanda'
 
   return (
-    <Routes>
-      <Route element={<AppShell />}>
-        <Route path="/" element={isMesaComanda ? <MesasPage /> : <CaixaPage />} />
-        {isMesaComanda && <Route path="/comanda/:orderId" element={<ComandaPage />} />}
-        <Route path="/catalogo" element={<CatalogoPage />} />
-        <Route path="/vendas" element={<VendasPage />} />
-        <Route path="/fechamento" element={<FechamentoPage />} />
-        <Route path="/config" element={<ConfigPage />} />
-      </Route>
-    </Routes>
+    <LoginGate>
+      <Routes>
+        <Route element={<AppShell />}>
+          <Route path="/" element={isMesaComanda ? <MesasPage /> : <CaixaPage />} />
+          {isMesaComanda && <Route path="/comanda/:orderId" element={<ComandaPage />} />}
+          <Route
+            path="/catalogo"
+            element={
+              <RequireRole min="gerente">
+                <CatalogoPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/vendas"
+            element={
+              <RequireRole min="gerente">
+                <VendasPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/fechamento"
+            element={
+              <RequireRole min="gerente">
+                <FechamentoPage />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/config"
+            element={
+              <RequireRole min="administrador">
+                <ConfigPage />
+              </RequireRole>
+            }
+          />
+        </Route>
+      </Routes>
+    </LoginGate>
   )
 }
 

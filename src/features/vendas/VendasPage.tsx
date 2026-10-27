@@ -100,6 +100,7 @@ export function VendasPage() {
               <div className={`flex items-center justify-between px-4 py-3 ${cancelada ? 'opacity-50' : ''}`}>
                 <button onClick={() => toggleExpand(order)} className="flex flex-1 items-center justify-between text-left hover:underline">
                   <span className="text-sm text-neutral-700">{formatDateTime(order.created_at)}</span>
+                  <span className="text-sm text-neutral-500">{order.staff_name ?? '—'}</span>
                   <span className="text-sm text-neutral-500">{order.method ? methodLabel[order.method] : '—'}</span>
                   <span className={`mx-3 font-medium ${cancelada ? 'line-through' : ''}`}>{centsToBRL(order.total_cents)}</span>
                 </button>

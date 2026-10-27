@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { v4 as uuidv4 } from 'uuid'
+import { useStaff } from '../../auth/StaffProvider'
 import { useDb } from '../../db/DbProvider'
 import type { Order, OrderItem, PaymentMethod, Product } from '../../db/schema'
 import { useBusinessConfig } from '../../shared/BusinessConfigProvider'
@@ -14,6 +15,7 @@ export function ComandaPage() {
   const db = useDb()
   const navigate = useNavigate()
   const { name: businessName } = useBusinessConfig()
+  const { current } = useStaff()
   const [order, setOrder] = useState<Order | null>(null)
   const [items, setItems] = useState<OrderItem[]>([])
   const [lastReceipt, setLastReceipt] = useState<ReceiptData | null>(null)
@@ -88,8 +90,9 @@ export function ComandaPage() {
           item.product_id,
         ])
       }
-      await db.exec('UPDATE orders SET status = ?, total_cents = ?, updated_at = ?, device_id = ? WHERE id = ?', [
+      await db.exec('UPDATE orders SET status = ?, staff_name = ?, total_cents = ?, updated_at = ?, device_id = ? WHERE id = ?', [
         'finalizada',
+        current?.name ?? null,
         totalCents,
         now,
         deviceId,

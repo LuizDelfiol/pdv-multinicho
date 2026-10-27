@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
+import { useStaff } from '../../auth/StaffProvider'
 import { useDb } from '../../db/DbProvider'
 import type { PaymentMethod, Product } from '../../db/schema'
 import { useBusinessConfig } from '../../shared/BusinessConfigProvider'
@@ -19,6 +20,7 @@ interface CartLine {
 export function CaixaPage() {
   const db = useDb()
   const { name: businessName } = useBusinessConfig()
+  const { current } = useStaff()
   const [cart, setCart] = useState<CartLine[]>([])
   const [lastReceipt, setLastReceipt] = useState<ReceiptData | null>(null)
 
@@ -56,9 +58,9 @@ export function CaixaPage() {
 
     await db.transaction(async () => {
       await db.exec(
-        `INSERT INTO orders (id, status, total_cents, created_at, updated_at, device_id, deleted)
-         VALUES (?, 'finalizada', ?, ?, ?, ?, 0)`,
-        [orderId, totalCents, now, now, deviceId],
+        `INSERT INTO orders (id, status, staff_name, total_cents, created_at, updated_at, device_id, deleted)
+         VALUES (?, 'finalizada', ?, ?, ?, ?, ?, 0)`,
+        [orderId, current?.name ?? null, totalCents, now, now, deviceId],
       )
       for (const line of cart) {
         await db.exec(

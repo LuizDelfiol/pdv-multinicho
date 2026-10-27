@@ -17,6 +17,7 @@ export interface Order {
   status: OrderStatus
   table_number: string | null
   total_cents: number
+  staff_name: string | null
   created_at: string
   updated_at: string
   device_id: string
@@ -65,6 +66,7 @@ export interface CashSession {
   opening_amount_cents: number
   counted_amount_cents: number | null
   expected_amount_cents: number | null
+  staff_name: string | null
   opened_at: string
   closed_at: string | null
   updated_at: string
@@ -80,7 +82,22 @@ export interface CashMovement {
   type: CashMovementType
   amount_cents: number
   reason: string | null
+  staff_name: string | null
   created_at: string
+  updated_at: string
+  device_id: string
+  deleted: number
+}
+
+export type StaffRole = 'operador' | 'gerente' | 'administrador'
+
+export interface Staff {
+  id: string
+  name: string
+  role: StaffRole
+  // null = sem PIN definido neste terminal ainda (ex: staff chegou via sync de outro
+  // terminal — pin_hash nunca sincroniza). Precisa "Redefinir PIN" aqui pra conseguir logar.
+  pin_hash: string | null
   updated_at: string
   device_id: string
   deleted: number
@@ -106,6 +123,7 @@ CREATE TABLE IF NOT EXISTS orders (
   status TEXT NOT NULL,
   table_number TEXT,
   total_cents INTEGER NOT NULL DEFAULT 0,
+  staff_name TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   device_id TEXT NOT NULL,
@@ -152,6 +170,7 @@ CREATE TABLE IF NOT EXISTS cash_sessions (
   opening_amount_cents INTEGER NOT NULL,
   counted_amount_cents INTEGER,
   expected_amount_cents INTEGER,
+  staff_name TEXT,
   opened_at TEXT NOT NULL,
   closed_at TEXT,
   updated_at TEXT NOT NULL,
@@ -165,6 +184,7 @@ CREATE TABLE IF NOT EXISTS cash_movements (
   type TEXT NOT NULL,
   amount_cents INTEGER NOT NULL,
   reason TEXT,
+  staff_name TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   device_id TEXT NOT NULL,
@@ -172,6 +192,16 @@ CREATE TABLE IF NOT EXISTS cash_movements (
 );
 
 CREATE INDEX IF NOT EXISTS idx_cash_movements_session ON cash_movements(session_id);
+
+CREATE TABLE IF NOT EXISTS staff (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  role TEXT NOT NULL,
+  pin_hash TEXT,
+  updated_at TEXT NOT NULL,
+  device_id TEXT NOT NULL,
+  deleted INTEGER NOT NULL DEFAULT 0
+);
 `
 
 // Evolui bancos já existentes (CREATE TABLE acima já nasce com o schema atual,
@@ -183,6 +213,9 @@ export interface Migration {
 
 export const MIGRATIONS: Migration[] = [
   { version: 1, sql: 'ALTER TABLE orders ADD COLUMN table_number TEXT' },
+  { version: 2, sql: 'ALTER TABLE orders ADD COLUMN staff_name TEXT' },
+  { version: 3, sql: 'ALTER TABLE cash_sessions ADD COLUMN staff_name TEXT' },
+  { version: 4, sql: 'ALTER TABLE cash_movements ADD COLUMN staff_name TEXT' },
 ]
 
 export const CURRENT_SCHEMA_VERSION = MIGRATIONS.reduce((max, m) => Math.max(max, m.version), 0)

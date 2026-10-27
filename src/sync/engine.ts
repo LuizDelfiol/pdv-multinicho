@@ -8,7 +8,10 @@ interface TableSpec {
 
 const TABLES: TableSpec[] = [
   { name: 'products', columns: ['id', 'code', 'name', 'price_cents', 'stock', 'unit', 'updated_at', 'device_id', 'deleted'] },
-  { name: 'orders', columns: ['id', 'status', 'table_number', 'total_cents', 'created_at', 'updated_at', 'device_id', 'deleted'] },
+  {
+    name: 'orders',
+    columns: ['id', 'status', 'table_number', 'total_cents', 'staff_name', 'created_at', 'updated_at', 'device_id', 'deleted'],
+  },
   {
     name: 'order_items',
     columns: ['id', 'order_id', 'product_id', 'product_name', 'quantity', 'unit_price_cents', 'updated_at', 'device_id', 'deleted'],
@@ -22,6 +25,7 @@ const TABLES: TableSpec[] = [
       'opening_amount_cents',
       'counted_amount_cents',
       'expected_amount_cents',
+      'staff_name',
       'opened_at',
       'closed_at',
       'updated_at',
@@ -31,8 +35,10 @@ const TABLES: TableSpec[] = [
   },
   {
     name: 'cash_movements',
-    columns: ['id', 'session_id', 'type', 'amount_cents', 'reason', 'created_at', 'updated_at', 'device_id', 'deleted'],
+    columns: ['id', 'session_id', 'type', 'amount_cents', 'reason', 'staff_name', 'created_at', 'updated_at', 'device_id', 'deleted'],
   },
+  // pin_hash fica só local, nunca sincroniza — cada terminal/instalação guarda seu próprio
+  { name: 'staff', columns: ['id', 'name', 'role', 'updated_at', 'device_id', 'deleted'] },
 ]
 
 const LAST_SYNCED_KEY = 'pdv_last_synced_at'

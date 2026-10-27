@@ -6,10 +6,10 @@ export const mercadoTemplate: BusinessTemplate = {
   productLabel: 'Produto',
   flow: 'venda-direta',
   nav: [
-    { to: '/', label: 'Caixa' },
-    { to: '/catalogo', label: 'Catálogo' },
-    { to: '/vendas', label: 'Vendas' },
-    { to: '/fechamento', label: 'Fechamento' },
-    { to: '/config', label: 'Config' },
+    { to: '/', label: 'Caixa', minRole: 'operador' },
+    { to: '/catalogo', label: 'Catálogo', minRole: 'gerente' },
+    { to: '/vendas', label: 'Vendas', minRole: 'gerente' },
+    { to: '/fechamento', label: 'Fechamento', minRole: 'gerente' },
+    { to: '/config', label: 'Config', minRole: 'administrador' },
   ],
 }

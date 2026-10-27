@@ -84,7 +84,15 @@ function BackupSection() {
   const db = useDb()
 
   async function handleExport() {
-    const tables = ['products', 'orders', 'order_items', 'payments', 'business_config'] as const
+    const tables = [
+      'products',
+      'orders',
+      'order_items',
+      'payments',
+      'business_config',
+      'cash_sessions',
+      'cash_movements',
+    ] as const
     const data: Record<string, unknown[]> = {}
     for (const table of tables) {
       data[table] = await db.query(`SELECT * FROM ${table}`)

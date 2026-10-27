@@ -93,6 +93,14 @@ alter table payments enable row level security;
 alter table cash_sessions enable row level security;
 alter table cash_movements enable row level security;
 
+-- create policy não tem "if not exists" no Postgres — drop+create pra ser seguro rodar de novo
+drop policy if exists "own rows" on products;
+drop policy if exists "own rows" on orders;
+drop policy if exists "own rows" on order_items;
+drop policy if exists "own rows" on payments;
+drop policy if exists "own rows" on cash_sessions;
+drop policy if exists "own rows" on cash_movements;
+
 create policy "own rows" on products for all using (business_id = auth.uid()) with check (business_id = auth.uid());
 create policy "own rows" on orders for all using (business_id = auth.uid()) with check (business_id = auth.uid());
 create policy "own rows" on order_items for all using (business_id = auth.uid()) with check (business_id = auth.uid());
